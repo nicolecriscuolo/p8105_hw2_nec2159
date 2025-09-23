@@ -1,0 +1,18 @@
+---
+title: "p8105_hw2_nec2159"
+author: "Nicole Criscuolo"
+date: "2025-09-23"
+output: github_document
+---
+
+```{r echo = FALSE, message = FALSE}
+library(tidyverse)
+```
+ 
+## Problem 1
+
+```{r}
+pols_df =
+  read_csv("data/pols-month.csv")
+```
+
