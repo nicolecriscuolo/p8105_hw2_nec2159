@@ -7,12 +7,29 @@ output: github_document
 
 ```{r echo = FALSE, message = FALSE}
 library(tidyverse)
+library(dplyr)
 ```
  
 ## Problem 1
 
-```{r}
+```{r message = FALSE}
 pols_df =
-  read_csv("data/pols-month.csv")
+  read_csv("data/pols-month.csv") |> 
+  relocate(mon, prez_gop, prez_dem) |> 
+  separate(mon, into = c("year", "month", "day"), sep = "-") |> 
+  pivot_longer(
+    cols = prez_gop:prez_dem,
+    names_to = "president",
+    values_to = "yes_no"
+  )|> 
+  filter(yes_no != 0) |> 
+    mutate(president = case_match(
+    president,
+    "prez_dem" ~ "dem",
+    "prez_gop" ~ "gop"
+  )) |> 
+    select(-day, -yes_no)
 ```
+
+
 
