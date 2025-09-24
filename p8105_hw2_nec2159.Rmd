@@ -12,11 +12,12 @@ library(dplyr)
  
 ## Problem 1
 
-```{r message = FALSE}
+```{r}
 pols_df =
   read_csv("data/pols-month.csv") |> 
   relocate(mon, prez_gop, prez_dem) |> 
   separate(mon, into = c("year", "month", "day"), sep = "-") |> 
+  mutate(month = month.name[as.numeric(month)]) |> 
   pivot_longer(
     cols = prez_gop:prez_dem,
     names_to = "president",
@@ -31,5 +32,27 @@ pols_df =
     select(-day, -yes_no)
 ```
 
+```{r}
+snp_df = 
+  read_csv("data/snp.csv") |> 
+  separate(date, into = c("month", "day", "year"), sep = "/") |> 
+  mutate(month = month.name[as.numeric(month)]) |> 
+  relocate(year, month) 
+
+# still need to make year 4 digits
+```
+
+```{r}
+unemployment_df =
+  read_csv("data/unemployment.csv") |> 
+  pivot_longer(
+    cols = Jan:Dec,
+    names_to = "month",
+    values_to = "percentage"
+  ) |> 
+  rename(year = Year) 
+
+# still need to make month names full names
+```
 
 
