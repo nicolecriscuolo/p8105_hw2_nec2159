@@ -86,16 +86,48 @@ all_df =
 ```{r}
 mr_trash_df =
   read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
-             range = "A2:N655", 
+            skip = 1, 
             na = c("NA", ".", "")) |> 
   janitor::clean_names() |> 
+  select(-x15, -x16) |> 
   drop_na(dumpster) |> 
-  mutate(sports_balls = as.integer(round(sports_balls)))
+  mutate(sports_balls = as.integer(round(sports_balls)),
+         year = as.numeric(year),
+         wheel = "mister")
 
-#do i also need to seprate date into month day year columns
+# do i also need to separate date into month day year columns
 ```
 
+```{r}
+prof_trash_df =
+  read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+             sheet = 2,
+             skip = 1,
+             na = c("NA", ".", "")) |> 
+  janitor::clean_names() |> 
+  drop_na(dumpster) |> 
+  mutate(year = as.numeric(year),
+         wheel = "professor")
+```
 
+```{r}
+gwynnda_trash_df =
+  read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+             sheet = 4,
+             skip = 1,
+             na = c("NA", ".", "")) |> 
+  janitor::clean_names() |> 
+  drop_na(dumpster) |> 
+  mutate(year= as.numeric(year),
+         wheel = "gwynnda")
+```
 
+```{r}
+trash_df = 
+  full_join(mr_trash_df, prof_trash_df)
+full_trash_df =
+  full_join(trash_df, gwynnda_trash_df) |> 
+  relocate(wheel)
+```
 
 
