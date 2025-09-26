@@ -130,4 +130,32 @@ full_trash_df =
   relocate(wheel)
 ```
 
+## Problem 3
+```{r}
+zip_df =
+  read_csv("data/Zip Codes.csv", na = c("NA", ".", "")) |> 
+  janitor::clean_names() |> 
+  select(-state_fips, -file_date, -county)
+
+zori_df =
+  read_csv("data/Zip_zori_NYC.csv", na = c("NA", ".", "")) |> 
+  pivot_longer(
+    cols = "2015-01-31":"2024-08-31",
+    names_to = "date",
+    values_to = "zori"
+  ) |> 
+  janitor::clean_names() |> 
+  rename(zip_code = region_name) |> 
+  select(-region_type, -state_name, -state, -city, -metro)
+```
+
+```{r}
+zip_zori_df =
+  full_join(zip_df, zori_df) |>
+  relocate(county_name, neighborhood)
+```
+```{r}
+missing_zips_df =
+  anti_join(zip_df, zori_df)
+```
 
