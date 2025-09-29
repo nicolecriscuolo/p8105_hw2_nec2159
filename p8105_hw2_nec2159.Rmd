@@ -45,7 +45,7 @@ snp_df =
   mutate(month = month.name[month]) |> 
   relocate(year) |> 
   select(-day) |> 
-  rename (snp_close = close)
+  rename(snp_close = close)
 ```
   
 ```{r}
@@ -71,7 +71,8 @@ unemployment_df =
     "Oct" ~ "October",
     "Nov" ~ "November",
     "Dec" ~ "December"),
-    year = as.numeric(year))
+    year = as.numeric(year)) |> 
+  drop_na(unemployment_percentage)
 ```
 
 ```{r}
@@ -81,22 +82,19 @@ all_df =
   full_join(joined_df, unemployment_df)
 ```
 
-The first data set included information about the party affiliation of national politicians. More specifically, it gave the number of governors, senators, and representatives that belonged to each party as well as the president's affiliation on the 15th of each month from `r pols_df |> pull(year) |> min()` to `r pols_df |> pull(year) |> max()`. The second data set included the closing values of the Standard & Poor's (S&P) stock market index at the beginning of any given month from `r snp_df |> pull(year) |> min()` to `r snp_df |> pull(year) |> max()`. The last data set showed the percentage of unemployment during any given month from `r unemployment_df |> pull(year) |> min()` to `r unemployment_df |> pull(year) |> max()`. After tidying and joining all three of these data sets, the resulting data set shows the unemployment percentage (`unemployment_percentage`), the closing S&P stock index (`snp_close`), the party affiliation of the president (`president`), and the number of governors, senators, and representatives who belong to the republican party (`gov_gop`, `sen_gop`, `rep_gop`) and the democratic party (`gov_dem`, `sen_dem`, `rep_dem`). Each of these values are shown for during any given month from `r all_df |> pull(year) |> min()` to `r all_df |> pull(year) |> max()`. This data set includes `r nrow(all_df)` observations and `r ncol(all_df)` variables.
+The first data set included information about the party affiliation of national politicians. More specifically, it gave the number of governors, senators, and representatives that belonged to each party as well as the president's affiliation on the 15th of each month from January `r pols_df |> pull(year) |> min()` to June `r pols_df |> pull(year) |> max()`. The second data set included the closing values of the Standard & Poor's (S&P) stock market index at the beginning of any given month from January `r snp_df |> pull(year) |> min()` to July `r snp_df |> pull(year) |> max()`. The last data set showed the percentage of unemployment during any given month from Janaury `r unemployment_df |> pull(year) |> min()` to June `r unemployment_df |> pull(year) |> max()`. After tidying and joining all three of these data sets, the resulting data set shows the unemployment percentage (`unemployment_percentage`), the closing S&P stock index (`snp_close`), the party affiliation of the president (`president`), and the number of governors, senators, and representatives who belong to the republican party (`gov_gop`, `sen_gop`, `rep_gop`) and the democratic party (`gov_dem`, `sen_dem`, `rep_dem`). Each of these values are shown for during any given month from January `r all_df |> pull(year) |> min()` to July `r all_df |> pull(year) |> max()`. This data set includes `r nrow(all_df)` observations and `r ncol(all_df)` variables.
 
 ## Problem 2
 
 ```{r}
 mr_trash_df =
   read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
-            range = "A2:N655", 
+            range = "A2:N653", 
             na = c("NA", ".", "")) |> 
   janitor::clean_names() |> 
-  drop_na(dumpster) |> 
   mutate(sports_balls = as.integer(round(sports_balls)),
          year = as.numeric(year),
          wheel = "mister")
-
-# do i also need to separate date into month day year columns
 ```
 
 ```{r}
@@ -106,7 +104,6 @@ prof_trash_df =
              range = "A2:M120", 
              na = c("NA", ".", "")) |> 
   janitor::clean_names() |> 
-  drop_na(dumpster) |> 
   mutate(year = as.numeric(year),
          wheel = "professor")
 ```
@@ -115,10 +112,9 @@ prof_trash_df =
 gwynnda_trash_df =
   read_excel("data/202409 Trash Wheel Collection Data.xlsx",
              sheet = 4,
-             range = "A2:L266",
+             range = "A2:L265",
              na = c("NA", ".", "")) |> 
   janitor::clean_names() |> 
-  drop_na(dumpster) |> 
   mutate(year= as.numeric(year),
          wheel = "gwynnda")
 ```
@@ -131,7 +127,7 @@ full_trash_df =
   relocate(wheel)
 ```
 
-Each of the three data sets described 1 of 3 different trash wheels: Mr. Trash Wheel, Professor Trash Wheel, and Gwynnda Trash Wheel. They all included information that described dumpster number, date, amount of litter collected, type of litter collected, and number of homes powered with collected litter Once these data sets are joined, the resulting data set includes `r nrow(full_trash_df)` observations and `r ncol(full_trash_df)` variables. It describes the amount of litter collected, type of litter collected, and number of homes powered (`homes_powered`) on certain dates from `r full_trash_df |> pull(year) |> min()` to `r full_trash_df |> pull(year) |> max()` for each trash wheel (`wheel`). The variables describing amount of litter include weight in tons (`weight_tons`) and volume in cubic yards (`volume_cubic_yards`). The variables describing type of litter include number of plastic bottles (`plastic_bottles`), polystyrene (`polystyrene`), glass bottles (`glass_bottles`), plastic bags (`plastic_bags`), wrappers (`wrappers`), and sports balls (`sports_balls`). 
+Each of the three data sets described 1 of 3 different trash wheels: Mr. Trash Wheel, Professor Trash Wheel, and Gwynnda Trash Wheel. They all included information that described dumpster number, date, amount of litter collected, type of litter collected, and number of homes powered with collected litter. Once these data sets are joined, the resulting data set includes `r nrow(full_trash_df)` observations and `r ncol(full_trash_df)` variables. It describes the amount of litter collected, type of litter collected, and number of homes powered (`homes_powered`) on certain dates from `r full_trash_df |> pull(year) |> min()` to `r full_trash_df |> pull(year) |> max()` for each trash wheel (`wheel`). The variables describing amount of litter include weight in tons (`weight_tons`) and volume in cubic yards (`volume_cubic_yards`). The variables describing type of litter include number of plastic bottles (`plastic_bottles`), polystyrene (`polystyrene`), glass bottles (`glass_bottles`), plastic bags (`plastic_bags`), wrappers (`wrappers`), and sports balls (`sports_balls`). 
 
 The total weight collected by Professor Trash Wheel was `r full_trash_df |> filter(wheel == "professor") |> pull(weight_tons) |> sum()` tons. The total number of cigarette butts collected by Gwynnda in June of 2022 was `r format(full_trash_df |> filter(wheel == "gwynnda", month == "June", year == "2022") |> pull(cigarette_butts) |> sum(), scientific = FALSE)`.
 
@@ -167,8 +163,6 @@ zip_zori_df =
 ```
 
 The resulting tidy data set includes information about the Zillow observed rent index (`zori`) on different dates from January 2015 to August 2024 in different neighborhoods in NYC (`neighborhood`). Other variables also include the county the neighborhood is in (`county_name`), the neighborhood zip code (`zip_code`), the county code (`county_code`), the county FIPS (`county_fips`), the regionID (`region_id`), and size ranks (`size_rank`). The data set includes `r nrow(zip_zori_df)` observations and `r ncol(zip_zori_df)` total variables. There are `r nrow(unique(zip_zori_df |> select(zip_code)))` unique zip codes in the data set and `r nrow(unique(zip_zori_df |> select(neighborhood)))` unique neighborhoods.
-
-Which ZIP codes appear in the ZIP code dataset but not in the Zillow Rental Price dataset? Using a few illustrative examples discuss why these ZIP codes might be excluded from the Zillow dataset.
 
 ```{r}
 missing_zips_df =
