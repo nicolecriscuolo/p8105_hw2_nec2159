@@ -28,10 +28,10 @@ pols_df =
     mutate(president = case_match(
     president,
     "prez_dem" ~ "dem",
-    "prez_gop" ~ "gop"
-  )) |> 
-  select(-day, -yes_no) |> 
-  mutate(year = as.numeric(year))
+    "prez_gop" ~ "gop"), 
+    year = as.numeric(year)
+  ) |> 
+  select(-day, -yes_no)
 ```
 
 ```{r}
@@ -44,7 +44,8 @@ snp_df =
   arrange(year, month) |> 
   mutate(month = month.name[month]) |> 
   relocate(year) |> 
-  select(-day)
+  select(-day) |> 
+  rename (snp_close = close)
 ```
   
 ```{r}
@@ -53,7 +54,7 @@ unemployment_df =
   pivot_longer(
     cols = Jan:Dec,
     names_to = "month",
-    values_to = "percentage"
+    values_to = "unemployment_percentage"
   ) |> 
   rename(year = Year) |> 
   mutate(month = case_match(
@@ -69,9 +70,8 @@ unemployment_df =
     "Sep" ~ "September",
     "Oct" ~ "October",
     "Nov" ~ "November",
-    "Dec" ~ "December",
-  )) |> 
-  mutate(year = as.numeric(year))
+    "Dec" ~ "December"),
+    year = as.numeric(year))
 ```
 
 ```{r}
@@ -80,6 +80,8 @@ joined_df =
 all_df = 
   full_join(joined_df, unemployment_df)
 ```
+
+The first data set included information about the party affiliation of national politicians. More specifically, it gave the number of governors, senators, and representatives that belonged to each party as well as the president's affiliation on the 15th of each month from `r pols_df |> pull(year) |> min()` to `r pols_df |> pull(year) |> max()`. The second data set included the closing values of the Standard & Poor's (S&P) stock market index at the beginning of any given month from `r snp_df |> pull(year) |> min()` to `r snp_df |> pull(year) |> max()`. The last data set showed the percentage of unemployment during any given month from `r unemployment_df |> pull(year) |> min()` to `r unemployment_df |> pull(year) |> max()`. After tidying and joining all three of these data sets, the resulting data set shows the unemployment percentage (`unemployment_percentage`), the closing S&P stock index (`snp_close`), the party affiliation of the president (`president`), and the number of governors, senators, and representatives who belong to the republican party (`gov_gop`, `sen_gop`, `rep_gop`) and the democratic party (`gov_dem`, `sen_dem`, `rep_dem`). Each of these values are shown for during any given month from `r all_df |> pull(year) |> min()` to `r all_df |> pull(year) |> max()`. This data set includes `r nrow(all_df)` observations and `r ncol(all_df)` variables.
 
 ## Problem 2
 
