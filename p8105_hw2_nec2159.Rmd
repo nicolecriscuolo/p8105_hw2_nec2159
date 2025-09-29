@@ -135,16 +135,19 @@ Each of the three data sets described 1 of 3 different trash wheels: Mr. Trash W
 
 The total weight collected by Professor Trash Wheel was `r full_trash_df |> filter(wheel == "professor") |> pull(weight_tons) |> sum()` tons. The total number of cigarette butts collected by Gwynnda in June of 2022 was `r format(full_trash_df |> filter(wheel == "gwynnda", month == "June", year == "2022") |> pull(cigarette_butts) |> sum(), scientific = FALSE)`.
 
-
 ## Problem 3
 ```{r}
 zip_df =
   read_csv("data/Zip Codes.csv", na = c("NA", ".", "")) |> 
   janitor::clean_names() |> 
-  select(-state_fips, -file_date, -county)
+  select(-state_fips, -file_date, -county) |> 
+  distinct(zip_code, .keep_all = TRUE)
+```
 
+```{r}
 zori_df =
   read_csv("data/Zip_zori_NYC.csv", na = c("NA", ".", "")) |> 
+  distinct(RegionName, .keep_all = TRUE) |> 
   pivot_longer(
     cols = "2015-01-31":"2024-08-31",
     names_to = "date",
@@ -152,7 +155,9 @@ zori_df =
   ) |> 
   janitor::clean_names() |> 
   rename(zip_code = region_name) |> 
-  select(-region_type, -state_name, -state, -city, -metro)
+  select(-region_type, -state_name, -state, -city, -metro) |> 
+  separate(date, into = c("year", "month", "day"), sep = "-") |> 
+  drop_na(zori)
 ```
 
 ```{r}
@@ -160,8 +165,39 @@ zip_zori_df =
   full_join(zip_df, zori_df) |>
   relocate(county_name, neighborhood)
 ```
+
+The resulting tidy data set includes information about the Zillow observed rent index (`zori`) on different dates from January 2015 to August 2024 in different neighborhoods in NYC (`neighborhood`). Other variables also include the county the neighborhood is in (`county_name`), the neighborhood zip code (`zip_code`), the county code (`county_code`), the county FIPS (`county_fips`), the regionID (`region_id`), and size ranks (`size_rank`). The data set includes `r nrow(zip_zori_df)` observations and `r ncol(zip_zori_df)` total variables. There are `r nrow(unique(zip_zori_df |> select(zip_code)))` unique zip codes in the data set and `r nrow(unique(zip_zori_df |> select(neighborhood)))` unique neighborhoods.
+
+Which ZIP codes appear in the ZIP code dataset but not in the Zillow Rental Price dataset? Using a few illustrative examples discuss why these ZIP codes might be excluded from the Zillow dataset.
+
 ```{r}
 missing_zips_df =
   anti_join(zip_df, zori_df)
 ```
+The zip codes that appear in the zip code data set but not in the ZORI data set are `r format(missing_zips_df |> pull(zip_code), scientific = FALSE)`. This could be because there were no rentals listed in these zip codes if they have a small population or not many residential buildings. I also noticed a lot of these zip codes also have missing values in the `neighborhood` column which might further indicate these zip codes do not correspond to traditional residential or geographic areas. The Empire State Building having its own zip code is a good example of this because although it's listed as a unique zip code in the zip data set, there are no residential units to measure a ZORI for.
+
+
+```{r}
+drop_price_df =
+  zip_zori_df |> 
+  select(county_name, neighborhood, zip_code, year, month, zori)  |> 
+  filter(year == "2020" | year == "2021", month == "01") |>  
+  pivot_wider(
+      names_from = year,
+      values_from = zori) |> 
+  rename(before_covid = "2020",
+         after_covid = "2021") |> 
+  mutate(before_covid = as.numeric(before_covid), 
+        after_covid = as.numeric(after_covid),
+      drop_in_price = before_covid - after_covid) |> 
+  arrange(desc(drop_in_price))  |> 
+  filter (row_number() <= 10) |> 
+  select(-month)
+```
+
+For all zip codes, the average rental price in January 2021 was `r mean(zip_zori_df |> filter(year == "2021", month == "01") |> pull(zori))`, compared to the average rental price in January 2020 being `r mean(zip_zori_df |> filter(year == "2020", month == "01") |> pull(zori))`. The minimum and maximum rental price in January 2021 for all zip codes were `r min(zip_zori_df |> filter(year == "2021", month == "01") |> pull(zori))` and `r max(zip_zori_df |> filter(year == "2021", month == "01") |> pull(zori))`, respectively. The minimum and maximum rental price in January 2020 for all zip codes were `r min(zip_zori_df |> filter(year == "2020", month == "01") |> pull(zori))` and `r max(zip_zori_df |> filter(year == "2020", month == "01") |> pull(zori))`, respectively. We see the average rental price dropped from 2020 to 2021. We also see the maximum rental price dropped as well while the minimum rental price only rose a small amount. 
+
+All of the zip codes with the largest drop in price due to COVID belong to the New York County. They also belong to the neighborhoods that typically have high rent prices in general. This is probably due to the fact that we are measuring drop in price rather than drop in price percentage. The maximum drop in price being `r max(drop_price_df |> pull(drop_in_price))` would only be reasonable for a rental that had a high price to begin with. For rentals that have lower prices, it is extremely unlikely for the price to drop that much, no matter the circumstance. Drop in price percentage might be a more useful measurement to determine COVID's impact on change in rental prices.
+
+
 
