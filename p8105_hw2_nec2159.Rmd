@@ -88,8 +88,8 @@ The first data set included information about the party affiliation of national 
 
 ```{r}
 mr_trash_df =
-  read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
-            range = "A2:N653", 
+  read_excel("data/202509 Trash Wheel Collection Data.xlsx", 
+            range = "A2:N709", 
             na = c("NA", ".", "")) |> 
   janitor::clean_names() |> 
   mutate(sports_balls = as.integer(round(sports_balls)),
@@ -99,9 +99,9 @@ mr_trash_df =
 
 ```{r}
 prof_trash_df =
-  read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+  read_excel("data/202509 Trash Wheel Collection Data.xlsx", 
              sheet = 2,
-             range = "A2:M120", 
+             range = "A2:M134", 
              na = c("NA", ".", "")) |> 
   janitor::clean_names() |> 
   mutate(year = as.numeric(year),
@@ -110,9 +110,9 @@ prof_trash_df =
 
 ```{r}
 gwynnda_trash_df =
-  read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+  read_excel("data/202509 Trash Wheel Collection Data.xlsx",
              sheet = 4,
-             range = "A2:L265",
+             range = "A2:L351",
              na = c("NA", ".", "")) |> 
   janitor::clean_names() |> 
   mutate(year= as.numeric(year),
